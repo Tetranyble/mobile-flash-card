@@ -1,105 +1,156 @@
-import React, { Component } from 'react';
-import PropTypes from 'prop-types';
-import { Text, View, StyleSheet, TextInput } from 'react-native';
-import TouchButton from './TouchButton';
-import { gray, green, white, textGray } from '../utils/colors';
-import { connect } from 'react-redux';
-import { addDeck } from '../actions/index';
-import { saveDeckTitleAS } from '../utils/api';
-import { StackActions, NavigationActions } from 'react-navigation';
+import React, {Component} from 'react'
+import {Text, TextInput, View, KeyboardAvoidingView, StyleSheet, Platform, TouchableOpacity} from 'react-native'
+import { connect } from 'react-redux'
+import { white, red, green, gray, orange, blue, black } from '../utils/colors'
+import { handleCreateDeck } from '../actions/decks'
+import { NavigationActions } from 'react-navigation'
 
-export class AddDeck extends Component {
-  static propTypes = {
-    navigation: PropTypes.object.isRequired,
-    addDeck: PropTypes.func.isRequired
-  };
-  state = {
-    text: ''
-  };
-  handleChange = text => {
-    this.setState({ text });
-  };
-  handleSubmit = () => {
-    const { addDeck, navigation } = this.props;
-    const { text } = this.state;
+class AddDeck extends Component{
+  state={
+    input : '',
+    feedback : '',
+    feedbackColor : gray,
+    disabled : true
+  }
 
-    addDeck(text);
-    saveDeckTitleAS(text);
+  handleChange = (input)=>{
+    const {deckTitles} = this.props;
+    if(input === '')
+    {
+      this.setState(()=>({
+        input,
+        feedback : 'INFO : Please add a valid title',
+        feedbackColor : gray,
+        disabled : true
+      }))
+      return
+    }
 
-    const resetAction = StackActions.reset({
-      index: 1,
-      actions: [
-        NavigationActions.navigate({ routeName: 'Home' }),
-        NavigationActions.navigate({
-          routeName: 'DeckDetail',
-          params: { title: text }
-        })
-      ]
-    });
-    navigation.dispatch(resetAction);
+    if(input !== '' && deckTitles.indexOf(input) > -1)
+    {
+      this.setState(()=>({
+        input,
+        feedback : 'ERROR : A deck with this title already exists',
+        feedbackColor : red,
+        disabled : true
+      }))
+      return
+    }
 
-    this.setState(() => ({ text: '' }));
-  };
-  render() {
-    return (
-      <View style={styles.container}>
-        <View style={{ height: 60 }} />
-        <View style={styles.block}>
-          <Text style={styles.title}>What is the title of your new deck?</Text>
+    this.setState(()=>({
+      input,
+      feedback : 'O.K. : Title is valid',
+      feedbackColor : green,
+      disabled : false
+    }))
+  }
+
+  submitNewDeck = () =>{
+    const deckTitle = this.state.input;
+    const {dispatch, navigation} = this.props;
+    this.setState(()=>({
+      input : '',
+      feedback : '',
+      feedbackColor : gray,
+      disabled : true
+    }))
+    //alert('AddDeck submitNewDeck> '+deckTitle)
+    dispatch(handleCreateDeck(deckTitle));
+    navigation.navigate('Deck',{entryId:deckTitle})
+  }
+
+  toHome = () => {
+    this.props.navigation.dispatch(
+      NavigationActions.back()
+    )
+  }
+
+  render(){
+    return(
+      <KeyboardAvoidingView behavior='padding' style={styles.container}>
+        <Text style={styles.title}>
+          Add a new Deck
+        </Text>
+        <TextInput
+          value={this.state.input}
+          style={styles.input}
+          onChangeText={this.handleChange}
+        />
+      <Text style={{color:this.state.feedbackColor}}>
+        {this.state.feedback}
+      </Text>
+      <TouchableOpacity
+        disabled={this.state.disabled}
+        activeOpacity = { .5 }
+        onPress={this.submitNewDeck}>
+        <View style={this.state.disabled ? styles.btnDisabled : styles.btnEnabled}>
+          <Text>
+            Create Deck
+          </Text>
         </View>
-        <View style={[styles.block]}>
-          <TextInput
-            style={styles.input}
-            value={this.state.text}
-            onChangeText={this.handleChange}
-            placeholder="Deck Name"
-            autoFocus={true}
-            returnKeyType="done"
-            onSubmitEditing={this.handleSubmit}
-          />
-        </View>
-        <TouchButton
-          btnStyle={{ backgroundColor: green, borderColor: white }}
-          onPress={this.handleSubmit}
-          disabled={this.state.text === ''}
-        >
-          Create Deck
-        </TouchButton>
-      </View>
-    );
+        </TouchableOpacity>
+      </KeyboardAvoidingView>
+    )
   }
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    paddingTop: 16,
-    paddingLeft: 16,
-    paddingRight: 16,
-    paddingBottom: 16,
-    backgroundColor: gray
+  title:{
+    fontSize:30,
+    paddingTop:10,
+    paddingBottom:10
   },
-  block: {
-    marginBottom: 20
-  },
-  title: {
-    textAlign: 'center',
-    fontSize: 32
-  },
-  input: {
-    borderWidth: 1,
-    borderColor: textGray,
-    backgroundColor: white,
-    paddingLeft: 10,
-    paddingRight: 10,
-    borderRadius: 5,
-    fontSize: 20,
-    height: 40,
-    marginBottom: 20
-  }
-});
 
-export default connect(
-  null,
-  { addDeck }
-)(AddDeck);
+  container:{
+    flex:1,
+    alignItems:'center',
+    backgroundColor: white,
+    padding: 20,
+    marginLeft: 10,
+    marginRight: 10,
+    marginTop: 17,
+   },
+
+   input:{
+     width: 200,
+     height: 44,
+     padding: 10,
+     borderWidth: 1,
+     borderColor: blue,
+     margin:10,
+   },
+
+   btnDisabled:{
+     margin:10,
+     padding : 60,
+     paddingTop : 20,
+     paddingBottom : 20,
+     backgroundColor: white,
+     borderColor : orange,
+     borderWidth: 2,
+     opacity:.3,
+     borderRadius: Platform.OS === 'ios' ? 10 : 2
+   },
+
+   btnEnabled:{
+     margin:10,
+     padding : 60,
+     paddingTop : 20,
+     paddingBottom : 20,
+     backgroundColor: white,
+     borderColor : orange,
+     borderWidth: 2,
+     opacity:1,
+     borderRadius: Platform.OS === 'ios' ? 10 : 2
+   },
+})
+
+function mapStateToProps({decks})
+{
+  const deckTitles = Object.keys(decks);
+    return {
+      deckTitles
+    }
+}
+
+export default connect(mapStateToProps)(AddDeck)

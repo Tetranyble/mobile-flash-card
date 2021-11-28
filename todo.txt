@@ -1,0 +1,9 @@
+1. build Add Deck ( View > checked, Actions > checked, Reducer > checked)
+2. build Add Card ( View > checked , Actions > checked, Reducer > checked)
+3. distinguish between initial load and regular load > checked
+4.implement messages > checked
+
+5. implement Quiz
+6. implement Push notification
+7. CSS > checked
+8. Documentation / Cleanup

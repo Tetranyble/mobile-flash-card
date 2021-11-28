@@ -1,13 +1,13 @@
 {
   "expo": {
-    "name": "Mobile Flashcards",
-    "description": "This app allows you to create flashcard decks to test yourself with.",
+    "name": "mobile-flashcards",
     "slug": "mobile-flashcards",
     "privacy": "public",
     "sdkVersion": "33.0.0",
     "platforms": [
       "ios",
-      "android"
+      "android",
+      "web"
     ],
     "version": "1.0.0",
     "orientation": "portrait",
@@ -17,9 +17,6 @@
       "resizeMode": "contain",
       "backgroundColor": "#ffffff"
     },
-    "notification": {
-      "icon": "./assets/icon-48.png"
-    },
     "updates": {
       "fallbackToCacheTimeout": 0
     },
@@ -27,12 +24,7 @@
       "**/*"
     ],
     "ios": {
-      "supportsTablet": true,
-      "bundleIdentifier": "io.jamespriest.mobileflashcards"
-    },
-    "android": {
-      "package": "io.jamespriest.mobileflashcards"
-    },
-    "githubUrl": "https://github.com/james-priest/mobile-flashcards"
+      "supportsTablet": true
+    }
   }
 }

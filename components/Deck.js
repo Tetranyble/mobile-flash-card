@@ -1,57 +1,122 @@
-import React from 'react';
-import PropTypes from 'prop-types';
-import { View, Text, StyleSheet } from 'react-native';
-import { white, textGray } from '../utils/colors';
-import { connect } from 'react-redux';
+import React, {Component} from 'react'
+import {View, Text, StyleSheet, TouchableOpacity, Platform} from 'react-native'
+import {connect} from 'react-redux'
+import { white, orange } from '../utils/colors'
 
-const Deck = props => {
-  const { deck } = props;
+class Deck extends Component{
+  render(){
+    const {entryId} = this.props
+    const {title, score, questions} = this.props.deck;
+    const disableQuiz = questions.length === 0 ? true : false
+    const quizBtnStyle = disableQuiz ? styles.disabled : styles.enabled
+    return(
+      <View style={styles.container}>
+        <Text style={styles.title}>
+          {title}
+        </Text>
+        <Text style={styles.cards}>
+          {`Cards in this deck: ${questions.length}`}
+        </Text>
+        <Text style={styles.highscore}>
+          {`Highscore: ${score} Points`}
+        </Text>
 
-  if (deck === undefined) {
-    return <View style={styles.deckContainer} />;
+        <TouchableOpacity
+          activeOpacity = { .5 }
+          disabled = {disableQuiz}
+          onPress={()=>this.props.navigation.navigate(
+            'Quiz',
+            {entryId : entryId}
+          )}>
+          <View style={[styles.btnBasic,styles.btnQuiz,quizBtnStyle]}>
+            <Text style={styles.btnTxt}>
+              Start Quiz
+            </Text>
+          </View>
+        </TouchableOpacity>
+        <TouchableOpacity
+          activeOpacity = { .5 }
+          onPress={()=>this.props.navigation.navigate(
+            'AddCard',
+            {entryId : entryId}
+          )}>
+          <View style={[styles.btnBasic,styles.btnAdd]}>
+            <Text style={styles.btnTxt}>
+              Add Cards
+            </Text>
+          </View>
+        </TouchableOpacity>
+      </View>
+    )
   }
-  return (
-    <View style={styles.deckContainer}>
-      <View>
-        <Text style={styles.deckText}>{deck.title}</Text>
-      </View>
-      <View>
-        <Text style={styles.cardText}>{deck.questions.length} cards</Text>
-      </View>
-    </View>
-  );
-};
-Deck.propTypes = {
-  deck: PropTypes.object
-};
+}
 
 const styles = StyleSheet.create({
-  deckContainer: {
-    alignItems: 'center',
-    justifyContent: 'center',
-    flexBasis: 120,
-    minHeight: 120,
-    borderWidth: 1,
-    borderColor: '#aaa',
+  container:{
     backgroundColor: white,
-    borderRadius: 5,
-    marginBottom: 10
+    borderRadius: Platform.OS === 'ios' ? 16 : 2,
+    flex:1,
+    alignItems:'center',
+    backgroundColor: white,
+    padding: 10,
+    margin:10,
+   },
+
+   title:{
+     fontSize:20,
+     paddingTop:10,
+     paddingBottom:20
   },
-  deckText: {
-    fontSize: 28
+
+  cards:{
+    fontSize:14,
+    paddingBottom:0
+ },
+
+ highscore:{
+   fontSize:14,
+   paddingTop:10,
+   paddingBottom:20
+},
+
+  btnBasic:{
+    margin:10,
+    padding : 40,
+    paddingTop : 20,
+    paddingBottom : 20,
+    backgroundColor: white,
+    borderWidth: 1,
+    width : 200,
+    borderRadius: Platform.OS === 'ios' ? 10 : 2
   },
-  cardText: {
-    fontSize: 18,
-    color: textGray
+
+  btnAdd:{
+    borderColor : orange
+  },
+
+  btnQuiz:{
+    borderColor : orange,
+  },
+
+  btnTxt:{
+    textAlign : 'center'
+  },
+
+  disabled:{
+    opacity:.3
+  },
+
+  enabled:{
+    opacity:1
   }
-});
+})
 
-const mapStateToProps = (state, { id }) => {
-  const deck = state[id];
-
+function mapStateToProps ({decks,loadingBar},{ navigation }) {
+  const { entryId } = navigation.state.params
   return {
-    deck
-  };
-};
+    entryId,
+    deck:decks[entryId]
+  }
+}
 
-export default connect(mapStateToProps)(Deck);
+export default connect(mapStateToProps)(Deck)

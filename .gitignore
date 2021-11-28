@@ -5,8 +5,6 @@ npm-debug.*
 *.p12
 *.key
 *.mobileprovision
-node_modules
-_site/
-.sass-cache/
-.jekyll-cache/
-.jekyll-metadata
+*.orig.*
+web-build/
+web-report/

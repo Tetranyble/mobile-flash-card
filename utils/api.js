@@ -1,98 +1,105 @@
-import { AsyncStorage } from 'react-native';
-import { decks } from './_DATA';
+import { AsyncStorage } from 'react-native'
+const API_KEY = 'Udacity:MobileFlashCards.0.0.12'
 
-const DECKS_STORAGE_KEY = 'MobileFlashcards:decks';
 
-export function getData() {
-  return decks;
-}
-
-function formatDeckResults(results) {
-  return results === null ? decks : JSON.parse(results);
-}
-
-export function getDecksOld() {
-  return AsyncStorage.getItem(DECKS_STORAGE_KEY).then(formatDeckResults);
-  // return AsyncStorage.getItem(DECKS_STORAGE_KEY).then(result => {
-  //   console.log('raw result', result);
-  //   console.log('parse result', JSON.parse(result));
-  //   return formatDeckResults(result);
-  // });
-}
-
-export async function getDecks() {
-  try {
-    const storeResults = await AsyncStorage.getItem(DECKS_STORAGE_KEY);
-
-    if (storeResults === null) {
-      AsyncStorage.setItem(DECKS_STORAGE_KEY, JSON.stringify(decks));
+const mockData = {
+    React: {
+        score : 0,
+        playcount : 0,
+        title: 'React',
+        questions: [
+        {
+          question: 'What is React?',
+          answer: 'A library for managing user interfaces'
+        }
+      ]
     }
-
-    return storeResults === null ? decks : JSON.parse(storeResults);
-  } catch (err) {
-    console.log(err);
   }
+
+export function getDecks(){
+  return AsyncStorage.getItem(API_KEY)
+    .then((results)=>{
+      if(results === null)
+      {
+        return AsyncStorage.setItem(API_KEY, JSON.stringify(mockData))
+        .then(() =>{
+          return AsyncStorage.getItem(API_KEY)
+        })
+        .then((results) =>{
+          return JSON.parse(results);
+        })
+      }
+      return JSON.parse(results);
+    })
 }
 
-export async function getDeck(id) {
-  try {
-    const storeResults = await AsyncStorage.getItem(DECKS_STORAGE_KEY);
-
-    return JSON.parse(storeResults)[id];
-  } catch (err) {
-    console.log(err);
-  }
+export function saveDeck(title){
+  return AsyncStorage.mergeItem(API_KEY, JSON.stringify({
+    [title]:{
+      score : 0,
+      playcount : 0,
+      title : title,
+      questions : []
+    }})
+  )
+  .then((error)=>{
+    return AsyncStorage.getItem(API_KEY)
+  })
+  .then((results)=>{
+    return JSON.parse(results);
+  })
 }
 
-export async function saveDeckTitleAS(title) {
-  try {
-    await AsyncStorage.mergeItem(
-      DECKS_STORAGE_KEY,
-      JSON.stringify({
-        [title]: {
-          title,
-          questions: []
-        }
-      })
-    );
-  } catch (err) {
-    console.log(err);
-  }
-}
-
-export async function removeDeckAS(key) {
-  try {
-    const results = await AsyncStorage.getItem(DECKS_STORAGE_KEY);
+export function saveScore(deck, score){
+  return AsyncStorage.getItem(API_KEY)
+  .then((results)=>{
     const data = JSON.parse(results);
-    data[key] = undefined;
-    delete data[key];
-    AsyncStorage.setItem(DECKS_STORAGE_KEY, JSON.stringify(data));
-  } catch (err) {
-    console.log(err);
-  }
+    data[deck]['score'] = score
+    data[deck]['playcount'] = Number(data[deck]['playcount'])+1
+    return AsyncStorage.setItem(API_KEY, JSON.stringify(data));
+  })
+  .then(()=>{
+    return AsyncStorage.getItem(API_KEY)
+  })
+  .then((results)=>{
+    return JSON.parse(results);
+  })
 }
 
-export async function addCardToDeckAS(title, card) {
-  try {
-    const deck = await getDeck(title);
-
-    await AsyncStorage.mergeItem(
-      DECKS_STORAGE_KEY,
-      JSON.stringify({
-        [title]: {
-          questions: [...deck.questions].concat(card)
-        }
-      })
-    );
-  } catch (err) {
-    console.log(err);
-  }
+export function removeDeck(title){
+  return AsyncStorage.getItem(API_KEY)
+    .then((results)=>{
+      const data = JSON.parse(results);
+      data[title] = undefined
+      delete data[title]
+      return AsyncStorage.setItem(API_KEY, JSON.stringify(data));
+    })
+    .then(()=>{
+      return AsyncStorage.getItem(API_KEY)
+    })
+    .then((results)=>{
+      return JSON.parse(results);
+    })
 }
+/*
+const merged = {
+  ...mockData,
+  ['React']:{...mockData['React'],
+  questions:mockData['React'].questions.unshift({question:'Question1', answer:'Answer1'})
+}}
+*/
 
-export async function resetDecks() {
-  try {
-    await AsyncStorage.setItem(DECKS_STORAGE_KEY, JSON.stringify(decks));
-  } catch (err) {
-    console.log(err);
-  }
+export function addCard(deck,question,answer){
+  return AsyncStorage.getItem(API_KEY)
+  .then((results)=>{
+    const data = JSON.parse(results);
+    data[deck]['questions'].unshift({question,answer})
+    return AsyncStorage.setItem(API_KEY, JSON.stringify(data));
+  })
+  .then(()=>{
+    return AsyncStorage.getItem(API_KEY)
+  })
+  .then((results)=>{
+    return JSON.parse(results);
+  })
 }

@@ -11,4 +11,4 @@ This project uses expo.
 -   start the app with with `yarn start`
     ( Runs the app in the development mode.)<br>
 this should automatically build the project and start off the emulator
-depending on the system config  
+depending on the system config 

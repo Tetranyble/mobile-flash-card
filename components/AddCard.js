@@ -1,125 +1,139 @@
-import React, { Component } from 'react';
-import PropTypes from 'prop-types';
-import { Text, View, TextInput, StyleSheet } from 'react-native';
-import TouchButton from './TouchButton';
-import { gray, green } from '../utils/colors';
-import { connect } from 'react-redux';
-import { addCardToDeck } from '../actions/index';
-import { addCardToDeckAS } from '../utils/api';
+import React, {Component} from 'react'
+import {Text, TextInput, View, KeyboardAvoidingView, StyleSheet, Platform, TouchableOpacity} from 'react-native'
+import { connect } from 'react-redux'
+import { white, red, green, gray, orange, blue, black } from '../utils/colors'
+import { handleAddCard } from '../actions/decks'
+import { NavigationActions } from 'react-navigation'
 
-export class AddCard extends Component {
-  static propTypes = {
-    navigation: PropTypes.object.isRequired,
-    title: PropTypes.string.isRequired,
-    addCardToDeck: PropTypes.func.isRequired
-  };
-  state = {
-    question: '',
-    answer: ''
-  };
-  handleQuestionChange = question => {
-    this.setState({ question });
-  };
-  handleAnswerChange = answer => {
-    this.setState({ answer });
-  };
-  handleSubmit = () => {
-    const { addCardToDeck, title, navigation } = this.props;
-    const card = {
-      question: this.state.question,
-      answer: this.state.answer
-    };
+class AddCard extends Component{
+  state={
+    question : '',
+    answer : ''
+  }
 
-    addCardToDeck(title, card);
-    addCardToDeckAS(title, card);
+  handleChangeQuestion = (input)=>{
+      this.setState(()=>({
+        question:input,
+      }))
+  }
 
-    this.setState({ question: '', answer: '' });
-    navigation.goBack();
-  };
-  render() {
-    return (
-      <View style={styles.container}>
-        <View>
-          <View style={styles.block}>
-            <Text style={styles.title}>Add a question</Text>
-          </View>
-          <View style={[styles.block]}>
-            <TextInput
-              style={styles.input}
-              value={this.state.question}
-              onChangeText={this.handleQuestionChange}
-              placeholder="Question"
-              autoFocus={true}
-              returnKeyType="next"
-              onSubmitEditing={() => this.answerTextInput.focus()}
-              blurOnSubmit={false}
-            />
-          </View>
-          <View style={[styles.block]}>
-            <TextInput
-              style={styles.input}
-              value={this.state.answer}
-              onChangeText={this.handleAnswerChange}
-              placeholder="Answer"
-              ref={input => {
-                this.answerTextInput = input;
-              }}
-              returnKeyType="done"
-              onSubmitEditing={this.handleSubmit}
-            />
-          </View>
-          <TouchButton
-            btnStyle={{ backgroundColor: green, borderColor: '#fff' }}
-            onPress={this.handleSubmit}
-            disabled={this.state.question === '' || this.state.answer === ''}
-          >
-            Submit
-          </TouchButton>
+  handleChangeAnswer = (input)=>{
+      this.setState(()=>({
+        answer:input,
+      }))
+  }
+
+  submitNewCard = () =>{
+    const {question, answer} = this.state;
+    const {dispatch, entryId} = this.props;
+    this.setState(()=>({
+      question : '',
+      answer : ''
+    }))
+    dispatch(handleAddCard(entryId,question,answer));
+    this.toHome()
+  }
+
+  toHome = () => {
+    this.props.navigation.dispatch(
+      NavigationActions.back()
+    )
+  }
+
+  render(){
+    const {deck, entryId} = this.props
+    return(
+      <KeyboardAvoidingView behavior='padding' style={styles.container}>
+        <Text style={styles.title}>
+           {`Add new Card to Deck "${deck.title}"`}
+        </Text>
+        <TextInput
+          placeholder={'Add a Question'}
+          value={this.state.question}
+          style={styles.input}
+          onChangeText={this.handleChangeQuestion}
+        />
+        <TextInput
+          placeholder={'Add an Answer'}
+          value={this.state.answer}
+          style={styles.input}
+          onChangeText={this.handleChangeAnswer}
+        />
+      <TouchableOpacity
+        disabled={this.state.question === '' || this.state.answer === ''}
+        activeOpacity = { .5 }
+        onPress={this.submitNewCard}>
+        <View style={(this.state.question === '' || this.state.answer === '')
+          ? styles.btnDisabled
+          : styles.btnEnabled}>
+          <Text>
+            Add Card
+          </Text>
         </View>
-        <View style={{ height: '30%' }} />
-      </View>
-    );
+        </TouchableOpacity>
+      </KeyboardAvoidingView>
+    )
   }
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    paddingTop: 16,
-    paddingLeft: 16,
-    paddingRight: 16,
-    paddingBottom: 16,
-    backgroundColor: gray,
-    justifyContent: 'space-around'
+  title:{
+    textAlign:'center',
+    fontSize:20,
+    paddingTop:10,
+    paddingBottom:20
   },
-  block: {
-    marginBottom: 20
-  },
-  title: {
-    textAlign: 'center',
-    fontSize: 32
-  },
-  input: {
-    borderWidth: 1,
-    borderColor: 'gray',
-    backgroundColor: '#fff',
-    paddingLeft: 10,
-    paddingRight: 10,
-    borderRadius: 5,
-    fontSize: 20,
-    height: 40
-  }
-});
 
-const mapStateToProps = (state, { navigation }) => {
-  const title = navigation.getParam('title', 'undefined');
+  container:{
+    flex:1,
+    alignItems:'center',
+    backgroundColor: white,
+    padding: 20,
+    marginLeft: 10,
+    marginRight: 10,
+    marginTop: 17,
+   },
 
+   input:{
+     width: 200,
+     height: 44,
+     padding: 10,
+     borderWidth: 1,
+     borderColor: blue,
+     margin:10,
+   },
+
+   btnDisabled:{
+     margin:10,
+     padding : 60,
+     paddingTop : 20,
+     paddingBottom : 20,
+     backgroundColor: white,
+     borderColor : orange,
+     borderWidth: 2,
+     opacity:.3,
+     borderRadius: Platform.OS === 'ios' ? 10 : 2
+   },
+
+   btnEnabled:{
+     margin:10,
+     padding : 60,
+     paddingTop : 20,
+     paddingBottom : 20,
+     backgroundColor: white,
+     borderColor : orange,
+     borderWidth: 2,
+     opacity:1,
+     borderRadius: Platform.OS === 'ios' ? 10 : 2
+   },
+})
+
+function mapStateToProps ({decks},{ navigation }) {
+  const { entryId } = navigation.state.params
   return {
-    title
-  };
-};
+    entryId,
+    deck:decks[entryId]
+  }
+}
 
-export default connect(
-  mapStateToProps,
-  { addCardToDeck }
-)(AddCard);
+export default connect(mapStateToProps)(AddCard)
